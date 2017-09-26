@@ -6,6 +6,12 @@ if (!process.env.token) {
 var Botkit = require('./lib/Botkit.js');
 var os = require('os');
 var solver = require('./solver31.js');
+var current_target = 31;
+var num_number = 4;
+var current_ops = ['+', '-', '*', '/', '**', '<<', '>>'];
+var current_input = '';
+//Generate all the solutions first
+solver.get_all_nums_solution(current_target, num_number, current_ops);
 
 var controller = Botkit.slackbot({
     debug: true,
@@ -59,6 +65,38 @@ controller.hears(['solve_with_target: ([0-9\s ]+), ([0-9]+)'], 'direct_message,d
     var solution = solver.solve(problem_input, target, ['+','-','*','/', '**']);
     bot.reply( message, 'Solution is: ' + solution);
 });
+
+controller.hears(['tanya_solusi'], 'direct_message,direct_mention,mention', function(bot, message) {
+    var problem_input = current_input.slice();
+    bot.reply( message, 'Solusi buat [' + problem_input + ']');
+    var solution = solver.fast_solve(problem_input, current_target, current_ops);
+    bot.reply( message, 'adalah: ' + solution);
+});
+
+
+controller.hears(['change_target:\s*([0-9]+)'], 'direct_message,direct_mention,mention', function(bot, message) {
+    var new_target = message.match[1].trim();
+    var current_target = parseInt(new_target);
+    get_all_nums_solution(current_target, num_number, current_ops);
+    bot.reply( message, 'Finish changing target. Our current target: ' + current_target);
+});
+/*
+controller.hears(['change_operators:\s*([+\-*\/<>\s]+)'], 'direct_message,direct_mention,mention', function(bot, message) {
+    var new_ops = message.match[1].trim().replace(/\s\s+/g, ' ').split(' ');
+    var current_ops = new_ops.slice();
+    get_all_nums_solution(current_target, num_number, current_ops);
+    bot.reply( message, 'Finish changing operators. Our current operators: ' + current_ops);
+});
+*/
+
+controller.hears(['main_pasti'], 'direct_message,direct_mention,mention', function(bot, message) {
+    bot.reply( message, 'Proceeding play that has solution guaranteed');
+    var nums_input = solver.nice_play(current_target);
+    current_input = nums_input.slice();
+    bot.reply( message, 'Solve: ' + nums_input);
+});
+
+
 
 
 controller.hears(['bonus-kucing'], 'direct_message,direct_mention,mention', function(bot, message) {
